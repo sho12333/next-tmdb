@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {};
 
-module.exports = nextConfig
+require("dotenv").config({ path: "./.env" });
+
+module.exports = {
+  images: {
+    domains: ["image.tmdb.org"],
+  },
+};
