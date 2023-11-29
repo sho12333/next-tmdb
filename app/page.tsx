@@ -9,27 +9,28 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { ThemeProvider } from "@emotion/react";
 import { useEffect, useState } from "react";
 import { Movie } from "./utils/data/movie";
 import { PlayArrow, Add, Close } from "@mui/icons-material";
+import { AuthProvider } from "./utils/auth/AuthContext";
 
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
   },
 });
-interface MyDialogProps {
-  open: boolean;
-  onClose: () => void;
-}
 
 export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
 
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const [rank, setRank] = useState(0);
 
   const handleCloseDescription = () => {
     setSelectedMovie(null);
@@ -68,15 +69,17 @@ export default function Home() {
     };
 
     return (
-      <div className={styles.movie} key={movie.id}>
-        <Image
-          src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
-          alt={movie.title || movie.original_name}
-          width={300}
-          height={300}
-          style={{ height: "24rem" }}
-          objectFit="cover"
-        />
+      <Card variant="outlined" className={styles.movie} key={movie.id}>
+        <CardContent>
+          <Image
+            src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
+            alt={movie.title || movie.original_name}
+            width={300}
+            height={300}
+            style={{ height: "24rem" }}
+            objectFit="cover"
+          />
+        </CardContent>
         <div className={styles.movieInfo}>
           <h3>{movie.title || movie.original_name}</h3>
           <button onClick={() => handleShowDescription(movie)}>
@@ -84,47 +87,49 @@ export default function Home() {
           </button>
           <PlayMyListButton />
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <ThemeProvider theme={darkTheme}>
-      <main>
-        <HeaderBar />
-        <ul>
-          <div className={styles.movieList}>
-            {movies.map((movie) => (
-              <li key={movie.id}>
-                <MovieCard movie={movie} />
-              </li>
-            ))}
-          </div>
-        </ul>
-        <Dialog open={dialogOpen} onClose={handleCloseDescription}>
-          <DialogTitle>
-            <div className="flex items-center justify-between">
-              <h2>{selectedMovie?.title || selectedMovie?.original_name}</h2>
-              <button onClick={handleCloseDescription}>
-                <Close />
-              </button>
+    <AuthProvider>
+      <ThemeProvider theme={darkTheme}>
+        <main>
+          <HeaderBar />
+          <ul>
+            <div className={styles.movieList}>
+              {movies.map((movie) => (
+                <li key={movie.id}>
+                  <MovieCard movie={movie} />
+                </li>
+              ))}
             </div>
-          </DialogTitle>
-          <DialogContent>
-            <p>{selectedMovie?.overview}</p>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDescription}>Close</Button>
-          </DialogActions>
-        </Dialog>
-      </main>
-    </ThemeProvider>
+          </ul>
+          <Dialog open={dialogOpen} onClose={handleCloseDescription}>
+            <DialogTitle>
+              <div className="flex items-center justify-between">
+                <h2>{selectedMovie?.title || selectedMovie?.original_name}</h2>
+                <button onClick={handleCloseDescription}>
+                  <Close />
+                </button>
+              </div>
+            </DialogTitle>
+            <DialogContent>
+              <p>{selectedMovie?.overview}</p>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDescription}>Close</Button>
+            </DialogActions>
+          </Dialog>
+        </main>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
 const styles = {
   movieList:
-    "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+    "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4",
   movie:
     "group cursor-pointer p-2 mt-4 transition duration-200 ease-in transform sm:hover:scale-105 hover:z-50",
   movieInfo: "p-2",
