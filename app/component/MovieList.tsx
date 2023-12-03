@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Movie } from "../type/movie";
-import { db } from "../utils/firebase";
-import { getFirestore, collection, getDocs } from "firebase/firestore/lite";
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper,
+} from "@mui/material";
 
 export default function MovieList() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -9,24 +15,31 @@ export default function MovieList() {
     async function fetchData() {
       const response = await fetch("api/firebase/movie");
       const data = await response.json();
-      console.log(data);
-
       setMovies(data);
     }
     fetchData();
   }, []);
 
   return (
-    <div>
-      <h2>投稿一覧</h2>
-      <ul>
-        {movies.map((movie) => (
-          <li key={movie.id}>
-            <h3>{movie.title}</h3>
-            {/* <p>{movie.release_date}</p> */}
-          </li>
-        ))}
-      </ul>
+    <div className="flex justify-center items-center">
+      <Paper className="max-w-xl">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>タイトル</TableCell>
+              <TableCell>ジャンル</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {movies.map((movie) => (
+              <TableRow key={movie.id}>
+                <TableCell>{movie.title}</TableCell>
+                <TableCell>{movie.genre}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Paper>
     </div>
   );
 }
