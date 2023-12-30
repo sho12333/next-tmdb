@@ -1,48 +1,35 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
+import { Box, Button, Container, CssBaseline, TextField, Typography } from '@mui/material'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Alert, Button, Snackbar, TextField, Container } from '@mui/material'
-
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
-import { useAuthContext } from '../../../utils/auth/AuthContext'
-import { app } from '../../../utils/firebase'
-
-import CssBaseline from '@mui/material/CssBaseline'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
-import Grid from '@mui/material/Grid'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import ErrorAlert from '../../../utils/error/ErrorSnackBar'
 
-const Login = () => {
-  const { user } = useAuthContext()
-  const [error, setError] = useState('')
-  const isLoggedIn = !!user
-  const router = useRouter()
-  const auth = getAuth(app)
+const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    try {
-      e.preventDefault()
-      setError('')
-      await signInWithEmailAndPassword(auth, email, password)
-      router.push('/')
-    } catch (error: any) {
-      setError('ログインに失敗しました')
-    }
+  const [errorMessage, setErrorMessage] = useState('')
+  const router = useRouter()
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const auth = getAuth()
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        router.push('/')
+      })
+      .catch((error) => {
+        console.log(error)
+        setErrorMessage('ログインに失敗しました')
+      })
   }
+
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.currentTarget.value)
   }
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.currentTarget.value)
-  }
-  const handleClose = () => {
-    router.push('/')
   }
 
   return (
@@ -54,8 +41,8 @@ const Login = () => {
         flex-flow: column;
       `}
     >
-      <Container component='main' maxWidth='xs' onSubmit={handleSubmit}>
-        <ErrorAlert message={error} />
+      <Container component='main' maxWidth='xs' onSubmit={handleRegister}>
+        <ErrorAlert message={errorMessage} />
 
         <CssBaseline />
         <Box
@@ -71,9 +58,9 @@ const Login = () => {
           }}
         >
           <Typography component='h1' variant='h5'>
-            ログイン
+            ユーザー登録
           </Typography>
-          <Box component='form' onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+          <Box component='form' onSubmit={handleRegister} noValidate sx={{ mt: 1 }}>
             <TextField
               margin='normal'
               required
@@ -95,10 +82,6 @@ const Login = () => {
               id='password'
               onChange={handleChangePassword}
             />
-            <FormControlLabel
-              control={<Checkbox value='remember' color='primary' />}
-              label='Remember me'
-            />
             <Button
               type='submit'
               fullWidth
@@ -114,18 +97,8 @@ const Login = () => {
                 },
               }}
             >
-              ログイン
+              登録
             </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href='#'>{'パスワードをお忘れですか?'}</Link>
-              </Grid>
-            </Grid>
-            <Grid container>
-              <Grid item>
-                <Link href='auth/register'>{'アカウントがありませんか? 新規作成'}</Link>
-              </Grid>
-            </Grid>
           </Box>
         </Box>
       </Container>
@@ -133,4 +106,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default RegisterPage
