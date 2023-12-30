@@ -1,5 +1,6 @@
 import { MenuItem, Typography } from '@mui/material'
 import React from 'react'
+import { getAuth, signOut } from 'firebase/auth'
 
 interface MenuOption {
   label: string
@@ -22,27 +23,31 @@ const Menu: React.FC<MenuProps> = ({ options }) => {
   )
 }
 
+const signout = async () => {
+  try {
+    const auth = getAuth()
+    await signOut(auth)
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 const settings: MenuOption[] = [
   {
     label: 'プロフィール',
     onChange: () => {
-      // Your logic for handling 'プロフィール' selection
       console.log('プロフィール selected')
     },
   },
   {
     label: '閲覧履歴',
     onChange: () => {
-      // Your logic for handling '閲覧履歴' selection
       console.log('閲覧履歴 selected')
     },
   },
   {
     label: 'ログアウト',
-    onChange: () => {
-      // Your logic for handling 'ログアウト' selection
-      console.log('ログアウト selected')
-    },
+    onChange: signout,
   },
 ]
 
