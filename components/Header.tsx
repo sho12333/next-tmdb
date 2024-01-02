@@ -14,7 +14,7 @@ import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import MenuComponent from './AccountMenu'
-import { MenuModel } from '@/models/menus/menu'
+import { MenuModel } from '../models/menus/menu'
 
 const pages: MenuModel[] = [
   {
