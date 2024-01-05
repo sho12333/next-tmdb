@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
@@ -9,21 +9,17 @@ import Menu from '@mui/material/Menu'
 import MenuIcon from '@mui/icons-material/Menu'
 import Container from '@mui/material/Container'
 import Avatar from '@mui/material/Avatar'
-import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import MenuComponent from './AccountMenu'
 import { MenuModel } from '../models/menus/menu'
+import { User, getAuth } from 'firebase/auth'
+import Link from 'next/link'
 
 const pages: MenuModel[] = [
   {
     id: '1',
-    name: 'Firebase Movie',
-    url: '/firebase',
-  },
-  {
-    id: '2',
     name: 'TMDB Movie',
     url: '/movie',
   },
@@ -32,6 +28,7 @@ const pages: MenuModel[] = [
 function HeaderBar() {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
+  const [user, setUser] = useState<null | User>(null)
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget)
@@ -48,6 +45,16 @@ function HeaderBar() {
     setAnchorElUser(null)
   }
 
+  const auth = getAuth()
+  useEffect(() => {
+    const authStateChanged = auth.onAuthStateChanged((user) => {
+      setUser(user)
+    })
+    return () => {
+      authStateChanged()
+    }
+  }, [])
+
   return (
     <AppBar position='static' color='primary'>
       <Container maxWidth='xl'>
@@ -57,7 +64,7 @@ function HeaderBar() {
             variant='h6'
             noWrap
             component='a'
-            href='#app-bar-with-responsive-menu'
+            href='/'
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -68,51 +75,55 @@ function HeaderBar() {
               textDecoration: 'none',
             }}
           >
-            MOreVIEw
+            MoreView
           </Typography>
+          {user && (
+            <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+              <IconButton
+                size='large'
+                aria-label='account of current user'
+                aria-controls='menu-appbar'
+                aria-haspopup='true'
+                onClick={handleOpenNavMenu}
+                color='inherit'
+              >
+                <MenuIcon />
+              </IconButton>
 
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size='large'
-              aria-label='account of current user'
-              aria-controls='menu-appbar'
-              aria-haspopup='true'
-              onClick={handleOpenNavMenu}
-              color='inherit'
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              id='menu-appbar'
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-              sx={{
-                display: { xs: 'block', md: 'none' },
-              }}
-            >
-              {pages.map((page) => (
-                <MenuItem key={page.id} onClick={handleCloseNavMenu}>
-                  <Typography textAlign='center'>{page.name}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-          </Box>
+              <Menu
+                id='menu-appbar'
+                anchorEl={anchorElNav}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+                open={Boolean(anchorElNav)}
+                onClose={handleCloseNavMenu}
+                sx={{
+                  display: { xs: 'block', md: 'none' },
+                }}
+              >
+                {pages.map((page) => (
+                  <MenuItem key={page.id}>
+                    <Link href={page.url}>
+                      <Typography textAlign='center'>{page.name}</Typography>
+                    </Link>
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
+          )}
           <AssignmentIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant='h5'
             noWrap
             component='a'
-            href='#app-bar-with-responsive-menu'
+            href='/'
             sx={{
               mr: 2,
               display: { xs: 'flex', md: 'none' },
@@ -124,46 +135,46 @@ function HeaderBar() {
               textDecoration: 'none',
             }}
           >
-            MOreVIEw
+            MoreView
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page.id}
-                href={page.url}
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}
+          {user && (
+            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+              {pages.map((page) => (
+                <MenuItem key={page.id}>
+                  <Link href={page.url}>
+                    <Typography textAlign='center'>{page.name}</Typography>
+                  </Link>
+                </MenuItem>
+              ))}
+            </Box>
+          )}
+          {user && (
+            <Box sx={{ flexGrow: 0, position: 'absolute', right: 0 }}>
+              <Tooltip title='設定を開く'>
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar alt='Remy Sharp' src='' />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                sx={{ mt: '45px' }}
+                id='menu-appbar'
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
               >
-                {page.name}
-              </Button>
-            ))}
-          </Box>
-
-          <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title='Open settings'>
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt='Remy Sharp' src='' />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: '45px' }}
-              id='menu-appbar'
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              <MenuComponent />
-            </Menu>
-          </Box>
+                <MenuComponent />
+              </Menu>
+            </Box>
+          )}
         </Toolbar>
       </Container>
     </AppBar>

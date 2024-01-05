@@ -1,10 +1,12 @@
 import { MenuItem, Typography } from '@mui/material'
 import React from 'react'
 import { getAuth, signOut } from 'firebase/auth'
+import { useRouter } from 'next/navigation'
 
 interface MenuOption {
   label: string
-  onChange: () => void
+  onChange?: () => void
+  hrefAttribute?: string
 }
 
 interface MenuProps {
@@ -35,9 +37,7 @@ const signout = async () => {
 const settings: MenuOption[] = [
   {
     label: 'プロフィール',
-    onChange: () => {
-      console.log('プロフィール selected')
-    },
+    hrefAttribute: 'profile',
   },
   {
     label: '閲覧履歴',
@@ -52,7 +52,14 @@ const settings: MenuOption[] = [
 ]
 
 const MenuComponent: React.FC = () => {
-  return <Menu options={settings} />
+  const router = useRouter()
+  let paramSetting = settings.map<MenuOption>((setting) => {
+    if (setting.hrefAttribute && !setting.onChange) {
+      setting.onChange = () => router.push(`/${setting.hrefAttribute}`)
+    }
+    return setting
+  })
+  return <Menu options={paramSetting} />
 }
 
 export default MenuComponent
