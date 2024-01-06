@@ -10,11 +10,10 @@ import {
   Card,
   CardContent,
 } from '@mui/material'
-import { ThemeProvider } from '@emotion/react'
 import { useEffect, useState } from 'react'
 import { Movie } from '../../utils/data/movie'
 import { PlayArrow, Add, Close } from '@mui/icons-material'
-import { AuthProvider } from '../../utils/auth/AuthContext'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
 export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([])
@@ -22,22 +21,27 @@ export default function Home() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const [rank, setRank] = useState(0)
-
   const handleCloseDescription = () => {
     setSelectedMovie(null)
     setDialogOpen(false)
   }
 
-  useEffect(() => {
-    async function fetchData() {
-      const response = await fetch('api/movie')
-      const data = await response.json()
-      console.log(data)
+  const auth = getAuth()
 
-      setMovies(data.results)
-    }
-    fetchData()
+  useEffect(() => {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const response = await fetch('api/movie')
+        console.log(response)
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`)
+        }
+        const data = await response.json()
+        setMovies(data.results)
+      } else {
+        setMovies([])
+      }
+    })
   }, [])
 
   function PlayMyListButton() {
