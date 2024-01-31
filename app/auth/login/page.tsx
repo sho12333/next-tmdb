@@ -1,49 +1,53 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Alert, Button, Snackbar, TextField, Container } from '@mui/material'
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button, TextField, Container } from '@mui/material';
 
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
-import { useAuthContext } from '../../../utils/auth/AuthContext'
-import { app } from '../../../utils/firebase'
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { app } from '../../../utils/firebase';
 
-import CssBaseline from '@mui/material/CssBaseline'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
-import Grid from '@mui/material/Grid'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import ErrorAlert from '../../../utils/error/ErrorSnackBar'
+import CssBaseline from '@mui/material/CssBaseline';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import ErrorAlert from '../../../utils/error/ErrorSnackBar';
+import { FirebaseError } from 'firebase/app';
 
 const Login = () => {
-  const { user } = useAuthContext()
-  const [error, setError] = useState('')
-  const isLoggedIn = !!user
-  const router = useRouter()
-  const auth = getAuth(app)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const router = useRouter();
+  const auth = getAuth(app);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    try {
-      e.preventDefault()
-      setError('')
-      await signInWithEmailAndPassword(auth, email, password)
-      router.push('/')
-    } catch (error: any) {
-      setError('ログインに失敗しました')
-    }
-  }
+    e.preventDefault();
+    setErrorMessage('');
+    await signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        router.push('/');
+      })
+      .catch((error: FirebaseError) => {
+        if (error.message.includes('auth/invalid-email')) {
+          setErrorMessage('メールアドレスの形式が正しくありません');
+        } else if (error.message.includes('auth/user-disabled')) {
+          setErrorMessage('アカウントが無効になっています');
+        } else if (error.message.includes('auth/user-not-found')) {
+          setErrorMessage('メールアドレスかパスワードが間違っています');
+        } else if (error.message.includes('auth/invalid-login-credentials')) {
+          setErrorMessage('メールアドレスかパスワードが間違っています');
+        } else {
+          setErrorMessage('ログインに失敗しました');
+        }
+      });
+  };
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.currentTarget.value)
-  }
+    setEmail(e.currentTarget.value);
+  };
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.currentTarget.value)
-  }
-  const handleClose = () => {
-    router.push('/')
-  }
+    setPassword(e.currentTarget.value);
+  };
 
   return (
     <div
@@ -54,9 +58,8 @@ const Login = () => {
         flex-flow: column;
       `}
     >
-      <Container component='main' maxWidth='xs' onSubmit={handleSubmit}>
-        <ErrorAlert message={error} />
-
+      <Container component='main' maxWidth='xs'>
+        {errorMessage && <ErrorAlert message={errorMessage} />}
         <CssBaseline />
         <Box
           sx={{
@@ -95,10 +98,6 @@ const Login = () => {
               id='password'
               onChange={handleChangePassword}
             />
-            <FormControlLabel
-              control={<Checkbox value='remember' color='primary' />}
-              label='Remember me'
-            />
             <Button
               type='submit'
               fullWidth
@@ -123,14 +122,14 @@ const Login = () => {
             </Grid>
             <Grid container>
               <Grid item>
-                <Link href='auth/register'>{'アカウントがありませんか? 新規作成'}</Link>
+                <Link href='/auth/register'>{'アカウントがありませんか? 新規作成'}</Link>
               </Grid>
             </Grid>
           </Box>
         </Box>
       </Container>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

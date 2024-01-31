@@ -1,21 +1,21 @@
-'use client'
-import { useEffect, useState } from 'react'
-import AppBar from '@mui/material/AppBar'
-import Box from '@mui/material/Box'
-import Toolbar from '@mui/material/Toolbar'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Menu from '@mui/material/Menu'
-import MenuIcon from '@mui/icons-material/Menu'
-import Container from '@mui/material/Container'
-import Avatar from '@mui/material/Avatar'
-import Tooltip from '@mui/material/Tooltip'
-import MenuItem from '@mui/material/MenuItem'
-import AssignmentIcon from '@mui/icons-material/Assignment'
-import MenuComponent from './AccountMenu'
-import { MenuModel } from '../models/menus/menu'
-import { User, getAuth } from 'firebase/auth'
-import Link from 'next/link'
+'use client';
+import { useEffect, useState } from 'react';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Menu from '@mui/material/Menu';
+import MenuIcon from '@mui/icons-material/Menu';
+import Container from '@mui/material/Container';
+import Avatar from '@mui/material/Avatar';
+import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import MenuComponent from './AccountMenu';
+import { MenuModel } from '../models/menus/menu';
+import { User, getAuth } from 'firebase/auth';
+import Link from 'next/link';
 
 const pages: MenuModel[] = [
   {
@@ -23,37 +23,37 @@ const pages: MenuModel[] = [
     name: 'TMDB Movie',
     url: '/movie',
   },
-]
+];
 
 function HeaderBar() {
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
-  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
-  const [user, setUser] = useState<null | User>(null)
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [user, setUser] = useState<null | User>(null);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget)
-  }
+    setAnchorElNav(event.currentTarget);
+  };
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget)
-  }
+    setAnchorElUser(event.currentTarget);
+  };
 
   const handleCloseNavMenu = () => {
-    setAnchorElNav(null)
-  }
+    setAnchorElNav(null);
+  };
 
   const handleCloseUserMenu = () => {
-    setAnchorElUser(null)
-  }
+    setAnchorElUser(null);
+  };
 
-  const auth = getAuth()
+  const auth = getAuth();
   useEffect(() => {
     const authStateChanged = auth.onAuthStateChanged((user) => {
-      setUser(user)
-    })
+      setUser(user);
+    });
     return () => {
-      authStateChanged()
-    }
-  }, [])
+      authStateChanged();
+    };
+  }, []);
 
   return (
     <AppBar position='static' color='primary'>
@@ -178,6 +178,6 @@ function HeaderBar() {
         </Toolbar>
       </Container>
     </AppBar>
-  )
+  );
 }
-export default HeaderBar
+export default HeaderBar;

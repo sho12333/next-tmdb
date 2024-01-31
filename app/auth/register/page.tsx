@@ -1,36 +1,59 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
-import { Box, Button, Container, CssBaseline, TextField, Typography } from '@mui/material'
-import { useRouter } from 'next/navigation'
-import ErrorAlert from '../../../utils/error/ErrorSnackBar'
+import { useEffect, useState } from 'react';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  CssBaseline,
+  Grid,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useRouter } from 'next/navigation';
+import ErrorAlert from '../../../utils/error/ErrorSnackBar';
+import { FirebaseError } from 'firebase/app';
+import Link from 'next/link';
 
 const RegisterPage: React.FC = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
-  const router = useRouter()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const auth = getAuth()
+    e.preventDefault();
+    setErrorMessage('');
+    const auth = getAuth();
     createUserWithEmailAndPassword(auth, email, password)
       .then(() => {
-        router.push('/')
+        router.push('/');
       })
-      .catch((error) => {
-        console.log(error)
-        setErrorMessage('ログインに失敗しました')
-      })
-  }
+      .catch((error: FirebaseError) => {
+        if (error.message.includes('invalid-email')) {
+          setErrorMessage('メールアドレスの形式が正しくありません');
+        } else if (error.message.includes('email-already-in-use')) {
+          setErrorMessage('既に登録されているメールアドレスです');
+        } else if (error.message.includes('weak-password')) {
+          setErrorMessage('パスワードは6文字以上で入力してください');
+        } else if (error.message.includes('operation-not-allowed')) {
+          setErrorMessage('メールアドレスとパスワードでの登録は無効になっています');
+        } else if (error.message.includes('invalid-credential')) {
+          setErrorMessage('メールアドレスの形式が正しくありません');
+        } else {
+          setErrorMessage('ユーザー登録に失敗しました');
+        }
+      });
+  };
 
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.currentTarget.value)
-  }
+    setEmail(e.currentTarget.value);
+  };
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.currentTarget.value)
-  }
+    setPassword(e.currentTarget.value);
+  };
 
   return (
     <div
@@ -41,8 +64,8 @@ const RegisterPage: React.FC = () => {
         flex-flow: column;
       `}
     >
-      <Container component='main' maxWidth='xs' onSubmit={handleRegister}>
-        <ErrorAlert message={errorMessage} />
+      <Container component='main' maxWidth='xs'>
+        {errorMessage && <ErrorAlert message={errorMessage} />}
 
         <CssBaseline />
         <Box
@@ -99,11 +122,16 @@ const RegisterPage: React.FC = () => {
             >
               登録
             </Button>
+            <Grid container>
+              <Grid item xs>
+                <Link href='/auth/login'>{'登録済みですか?  ログイン'}</Link>
+              </Grid>
+            </Grid>
           </Box>
         </Box>
       </Container>
     </div>
-  )
-}
+  );
+};
 
-export default RegisterPage
+export default RegisterPage;

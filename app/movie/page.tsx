@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import Image from 'next/image'
+import Image from 'next/image';
 import {
   Dialog,
   DialogTitle,
@@ -9,60 +9,45 @@ import {
   Button,
   Card,
   CardContent,
-} from '@mui/material'
-import { useEffect, useState } from 'react'
-import { Movie } from '../../utils/data/movie'
-import { PlayArrow, Add, Close } from '@mui/icons-material'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
+} from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Movie } from '../../models/movies/movie';
+import { PlayArrow, Add, Close } from '@mui/icons-material';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function Home() {
-  const [movies, setMovies] = useState<Movie[]>([])
+  const [movies, setMovies] = useState<Movie[]>([]);
 
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleCloseDescription = () => {
-    setSelectedMovie(null)
-    setDialogOpen(false)
-  }
+    setSelectedMovie(null);
+    setDialogOpen(false);
+  };
 
-  const auth = getAuth()
+  const auth = getAuth();
 
   useEffect(() => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const response = await fetch('api/movie')
-        console.log(response)
+        const response = await fetch('api/movie');
         if (!response.ok) {
-          throw new Error(`Server responded with status ${response.status}`)
+          throw new Error(`${response.status}`);
         }
-        const data = await response.json()
-        setMovies(data.results)
+        const data = await response.json();
+        setMovies(data.results);
       } else {
-        setMovies([])
+        setMovies([]);
       }
-    })
-  }, [])
-
-  function PlayMyListButton() {
-    return (
-      <div className='flex items-center justify-center space-x-2'>
-        <button className='flex items-center justify-center w-24 h-10 bg-red-600 text-white rounded-md font-bold text-sm hover:bg-red-700 transition-colors duration-150'>
-          <PlayArrow className='mr-2' />
-          Play
-        </button>
-        <button className='flex items-center justify-center w-10 h-10 bg-gray-800 text-white rounded-full font-bold text-sm hover:bg-gray-700 transition-colors duration-150'>
-          <Add />
-        </button>
-      </div>
-    )
-  }
+    });
+  }, []);
 
   function MovieCard({ movie }: { movie: Movie }) {
     const handleShowDescription = (movie: Movie) => {
-      setSelectedMovie(movie)
-      setDialogOpen(true)
-    }
+      setSelectedMovie(movie);
+      setDialogOpen(true);
+    };
 
     return (
       <Card variant='outlined' className={styles.movie} key={movie.id}>
@@ -78,11 +63,17 @@ export default function Home() {
         </CardContent>
         <div className={styles.movieInfo}>
           <h3>{movie.title || movie.original_name}</h3>
-          <button onClick={() => handleShowDescription(movie)}>Show Description</button>
-          <PlayMyListButton />
+          <div className='flex items-center justify-center'>
+            <button
+              className='mt-2 w-24 h-10 bg-black text-white rounded-md font-bold text-sm hover:bg-red-700 transition-colors duration-150'
+              onClick={() => handleShowDescription(movie)}
+            >
+              詳細
+            </button>
+          </div>
         </div>
       </Card>
-    )
+    );
   }
 
   return (
@@ -113,7 +104,7 @@ export default function Home() {
         </DialogActions>
       </Dialog>
     </main>
-  )
+  );
 }
 
 const styles = {
@@ -124,4 +115,4 @@ const styles = {
   descriptionOverlay:
     'fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center',
   description: 'bg-white p-4 rounded-lg max-w-2xl w-full overflow-y-auto max-h-full',
-}
+};

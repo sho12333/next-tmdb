@@ -1,35 +1,33 @@
-'use crient'
+'use crient';
 
-import { useState, useEffect } from 'react'
-import Snackbar from '@mui/material/Snackbar'
-import { Alert } from '@mui/material'
+import { useState, useEffect } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import { Alert } from '@mui/material';
 
-export interface ISnackbarOption {
-  message: string
-  severity: string
-}
+export type ISnackbarOption = {
+  message: string;
+  severity: string;
+};
 
 const ErrorSnack = ({ message }: { message: string }) => {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   const [messageInfo, setMessageInfo] = useState<ISnackbarOption>({
     message: '',
     severity: 'info',
-  })
+  });
 
   useEffect(() => {
     if (message) {
-      setOpen(true)
-      setMessageInfo({ ...messageInfo, message: message })
+      setOpen(true);
+      setMessageInfo({ ...messageInfo, message: message });
     } else {
-      console.log(open)
-
-      setOpen(false)
+      setOpen(false);
     }
-  }, [messageInfo, open])
+  }, []);
 
   const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
-    setOpen(false)
-  }
+    setOpen(false);
+  };
 
   return (
     <div>
@@ -43,7 +41,7 @@ const ErrorSnack = ({ message }: { message: string }) => {
         <Alert severity='error'>{messageInfo?.message}</Alert>
       </Snackbar>
     </div>
-  )
-}
+  );
+};
 
-export default ErrorSnack
+export default ErrorSnack;
