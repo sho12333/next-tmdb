@@ -1,18 +1,15 @@
 'use client';
 
-import { ReactNode, createContext, useState, useContext, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import type { User } from 'firebase/auth';
+import { ReactNode, createContext, useContext, useEffect } from 'react';
+import { useSession, signIn, SessionProvider } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
-import { app } from '../firebase';
 
-export type UserType = User | null;
-
-export type AuthContextProps = {
-  user: UserType;
+type AuthContextProps = {
+  user: any;
+  status: 'authenticated' | 'loading' | 'unauthenticated';
 };
 
-export type AuthProps = {
+type AuthProps = {
   children: ReactNode;
 };
 
@@ -22,28 +19,44 @@ export const useAuthContext = () => {
   return useContext(AuthContext);
 };
 
-export const AuthProvider = ({ children }: AuthProps) => {
+function AuthenticationLogic({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const auth = getAuth(app);
-  const [user, setUser] = useState<UserType>(null);
-  const value = {
-    user,
-  };
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    const authStateChanged = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (!user) {
-        if (pathname !== '/auth/register') {
-          router.push('/auth/login');
-        }
+    if (status === 'unauthenticated') {
+      if (pathname !== '/auth/register' && pathname !== '/auth/login') {
+        router.push('/auth/login');
       }
-    });
-    return () => {
-      authStateChanged();
-    };
-  }, []);
+    }
+  }, [status, pathname, router]);
+
+  const value = {
+    user: session?.user || null,
+    status,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
+
+export function AuthProvider({ children }: AuthProps) {
+  return (
+    <SessionProvider>
+      <AuthenticationLogic>{children}</AuthenticationLogic>
+    </SessionProvider>
+  );
+}
+
+export function useRequireAuth() {
+  const { user, status } = useAuthContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login');
+    }
+  }, [status, router]);
+
+  return { user, isLoading: status === 'loading' };
+}

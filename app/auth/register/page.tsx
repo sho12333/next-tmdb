@@ -1,137 +1,138 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import {
-  Alert,
-  Box,
-  Button,
-  Container,
-  CssBaseline,
-  Grid,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ErrorAlert from '../../../utils/error/ErrorSnackBar';
-import { FirebaseError } from 'firebase/app';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 
-const RegisterPage: React.FC = () => {
+// Import shadcn UI components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+
+export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setErrorMessage('');
-    const auth = getAuth();
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        router.push('/');
-      })
-      .catch((error: FirebaseError) => {
-        if (error.message.includes('invalid-email')) {
-          setErrorMessage('メールアドレスの形式が正しくありません');
-        } else if (error.message.includes('email-already-in-use')) {
-          setErrorMessage('既に登録されているメールアドレスです');
-        } else if (error.message.includes('weak-password')) {
-          setErrorMessage('パスワードは6文字以上で入力してください');
-        } else if (error.message.includes('operation-not-allowed')) {
-          setErrorMessage('メールアドレスとパスワードでの登録は無効になっています');
-        } else if (error.message.includes('invalid-credential')) {
-          setErrorMessage('メールアドレスの形式が正しくありません');
-        } else {
-          setErrorMessage('ユーザー登録に失敗しました');
-        }
-      });
-  };
+  // const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setErrorMessage('');
+  //   setIsLoading(true);
 
-  const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.currentTarget.value);
-  };
-  const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.currentTarget.value);
-  };
+  //   try {
+  //     // For Next-Auth, we'll use the register API endpoint
+  //     const response = await fetch('/api/auth/register', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (!response.ok) {
+  //       // Handle different error cases
+  //       if (data.error?.includes('invalid-email')) {
+  //         setErrorMessage('メールアドレスの形式が正しくありません');
+  //       } else if (data.error?.includes('email-already-exists')) {
+  //         setErrorMessage('既に登録されているメールアドレスです');
+  //       } else if (data.error?.includes('weak-password')) {
+  //         setErrorMessage('パスワードは6文字以上で入力してください');
+  //       } else {
+  //         setErrorMessage(data.error || 'ユーザー登録に失敗しました');
+  //       }
+  //       setIsLoading(false);
+  //       return;
+  //     }
+
+  //     // After successful registration, sign in the user
+  //     const result = await signIn('credentials', {
+  //       redirect: false,
+  //       email,
+  //       password,
+  //     });
+
+  //     if (result?.error) {
+  //       setErrorMessage('登録後のログインに失敗しました');
+  //       setIsLoading(false);
+  //       return;
+  //     }
+
+  //     // Redirect to the home page
+  //     router.push('/');
+  //     router.refresh();
+  //   } catch (error) {
+  //     console.error('Registration error:', error);
+  //     setErrorMessage('ユーザー登録に失敗しました');
+  //     setIsLoading(false);
+  //   }
+  // };
 
   return (
-    <div
-      className={`
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-flow: column;
-      `}
-    >
-      <Container component='main' maxWidth='xs'>
-        {errorMessage && <ErrorAlert message={errorMessage} />}
+    <div className='flex min-h-screen items-center justify-center p-4'>
+      <div className='w-full max-w-md'>
+        {errorMessage && (
+          <Alert variant='destructive' className='mb-4'>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
 
-        <CssBaseline />
-        <Box
-          sx={{
-            marginTop: 14,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            p: 2,
-            border: '1px solid #ccc',
-            boxShadow: 1,
-            borderRadius: '10px',
-          }}
-        >
-          <Typography component='h1' variant='h5'>
-            ユーザー登録
-          </Typography>
-          <Box component='form' onSubmit={handleRegister} noValidate sx={{ mt: 1 }}>
-            <TextField
-              margin='normal'
-              required
-              fullWidth
-              id='email'
-              type='email'
-              label='メールアドレス'
-              name='email'
-              onChange={handleChangeEmail}
-              autoFocus
-            />
-            <TextField
-              margin='normal'
-              required
-              fullWidth
-              name='password'
-              label='パスワード'
-              type='password'
-              id='password'
-              onChange={handleChangePassword}
-            />
-            <Button
-              type='submit'
-              fullWidth
-              color='primary'
-              variant='contained'
-              sx={{
-                mt: 3,
-                mb: 2,
-                color: 'black',
-                '&:hover': {
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                },
-              }}
-            >
-              登録
-            </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href='/auth/login'>{'登録済みですか?  ログイン'}</Link>
-              </Grid>
-            </Grid>
-          </Box>
-        </Box>
-      </Container>
+        <Card className='shadow-lg'>
+          <CardHeader className='space-y-1'>
+            <CardTitle className='text-center text-2xl font-bold'>ユーザー登録</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <form className='space-y-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='email'>メールアドレス</Label>
+                <Input
+                  id='email'
+                  type='email'
+                  placeholder='your@email.com'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='password'>パスワード</Label>
+                <Input
+                  id='password'
+                  type='password'
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
+                <p className='text-sm text-gray-500'>パスワードは6文字以上で入力してください</p>
+              </div>
+
+              <Button type='submit' className='w-full' disabled={isLoading}>
+                {isLoading ? '登録中...' : '登録'}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className='flex flex-col space-y-4 pt-0'>
+            <div className='text-sm text-center w-full'>
+              <Link
+                href='/auth/login'
+                className='text-blue-600 hover:text-blue-800 hover:underline'
+              >
+                登録済みですか? ログイン
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
-};
-
-export default RegisterPage;
+}

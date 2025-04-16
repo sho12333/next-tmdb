@@ -1,118 +1,130 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  Card,
-  CardContent,
-} from '@mui/material';
-import { useEffect, useState } from 'react';
-import { Movie } from '../../models/movies/movie';
-import { PlayArrow, Add, Close } from '@mui/icons-material';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
+
+// Define Movie type
+interface Movie {
+  id: number;
+  title?: string;
+  original_name?: string;
+  poster_path: string;
+  overview: string;
+}
 
 export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
-
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { data: session } = useSession();
 
   const handleCloseDescription = () => {
     setSelectedMovie(null);
     setDialogOpen(false);
   };
 
-  const auth = getAuth();
+  // useEffect(() => {
+  //   const fetchMovies = async () => {
+  //     if (session?.user) {
+  //       try {
+  //         const response = await fetch('/api/movie');
+  //         if (!response.ok) {
+  //           throw new Error(`Error: ${response.status}`);
+  //         }
+  //         const data = await response.json();
+  //         setMovies(data.results);
+  //       } catch (error) {
+  //         console.error('Failed to fetch movies:', error);
+  //       }
+  //     } else {
+  //       setMovies([]);
+  //     }
+  //   };
 
-  useEffect(() => {
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const response = await fetch('api/movie');
-        if (!response.ok) {
-          throw new Error(`${response.status}`);
-        }
-        const data = await response.json();
-        setMovies(data.results);
-      } else {
-        setMovies([]);
-      }
-    });
-  }, []);
+  //   fetchMovies();
+  // }, [session]);
 
   function MovieCard({ movie }: { movie: Movie }) {
-    const handleShowDescription = (movie: Movie) => {
+    const handleShowDescription = () => {
       setSelectedMovie(movie);
       setDialogOpen(true);
     };
 
     return (
-      <Card variant='outlined' className={styles.movie} key={movie.id}>
-        <CardContent>
-          <Image
-            src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
-            alt={movie.title || movie.original_name}
-            width={300}
-            height={300}
-            style={{ height: '24rem' }}
-            objectFit='cover'
-          />
-        </CardContent>
-        <div className={styles.movieInfo}>
-          <h3>{movie.title || movie.original_name}</h3>
-          <div className='flex items-center justify-center'>
-            <button
-              className='mt-2 w-24 h-10 bg-black text-white rounded-md font-bold text-sm hover:bg-red-700 transition-colors duration-150'
-              onClick={() => handleShowDescription(movie)}
-            >
-              詳細
-            </button>
+      <Card className='group cursor-pointer p-2 mt-4 transition duration-200 ease-in transform sm:hover:scale-105 hover:z-50'>
+        <CardContent className='p-1'>
+          <div className='overflow-hidden rounded-md'>
+            <Image
+              src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
+              alt={movie.title || movie.original_name || 'Movie poster'}
+              width={300}
+              height={450}
+              className='object-cover w-full h-96'
+            />
           </div>
-        </div>
+          <div className='p-2'>
+            <h3 className='text-lg font-semibold'>{movie.title || movie.original_name}</h3>
+            <div className='flex items-center justify-center'>
+              <Button
+                variant='default'
+                onClick={handleShowDescription}
+                className='mt-2 w-24 h-10 bg-black text-white hover:bg-red-700'
+              >
+                詳細
+              </Button>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     );
   }
 
   return (
     <main>
-      <ul>
-        <div className={styles.movieList}>
-          {movies.map((movie) => (
-            <li key={movie.id}>
-              <MovieCard movie={movie} />
-            </li>
-          ))}
-        </div>
+      <ul className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4'>
+        {movies.map((movie) => (
+          <li key={movie.id}>
+            <MovieCard movie={movie} />
+          </li>
+        ))}
       </ul>
-      <Dialog open={dialogOpen} onClose={handleCloseDescription}>
-        <DialogTitle>
-          <div className='flex items-center justify-between'>
-            <h2>{selectedMovie?.title || selectedMovie?.original_name}</h2>
-            <button onClick={handleCloseDescription}>
-              <Close />
-            </button>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center justify-between'>
+              <span>{selectedMovie?.title || selectedMovie?.original_name}</span>
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={handleCloseDescription}
+                className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100'
+              >
+                <X className='h-4 w-4' />
+                <span className='sr-only'>Close</span>
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className='py-4'>
+            <p className='text-sm text-gray-600'>{selectedMovie?.overview}</p>
           </div>
-        </DialogTitle>
-        <DialogContent>
-          <p>{selectedMovie?.overview}</p>
+          <DialogFooter>
+            <Button onClick={handleCloseDescription}>閉じる</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDescription}>Close</Button>
-        </DialogActions>
       </Dialog>
     </main>
   );
 }
-
-const styles = {
-  movieList: 'grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4',
-  movie:
-    'group cursor-pointer p-2 mt-4 transition duration-200 ease-in transform sm:hover:scale-105 hover:z-50',
-  movieInfo: 'p-2',
-  descriptionOverlay:
-    'fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center',
-  description: 'bg-white p-4 rounded-lg max-w-2xl w-full overflow-y-auto max-h-full',
-};
