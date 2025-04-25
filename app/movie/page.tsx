@@ -9,14 +9,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Star, Calendar, Info } from 'lucide-react';
+import { Star, Calendar, Info, SortDesc, ArrowDownUp } from 'lucide-react';
 import useSWR from 'swr';
+import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu';
+import { useMemo, useState } from 'react';
 
-// TMDBのAPIレスポンスの型
 interface MovieResponse {
   results: Movie[];
   page: number;
@@ -34,7 +45,6 @@ interface Movie {
   release_date?: string;
 }
 
-// SWRフェッチャー関数
 const fetcher = async (url: string): Promise<MovieResponse> => {
   const res = await fetch(url);
   if (!res.ok) {
@@ -43,19 +53,45 @@ const fetcher = async (url: string): Promise<MovieResponse> => {
   return res.json();
 };
 
+type Checked = DropdownMenuCheckboxItemProps['checked'];
+
+type SortOption = 'popularity' | 'rating' | 'newest' | 'title';
+
 export default function MovieComponent() {
   const { data: session } = useSession();
+  const [sortOption, setSortOption] = useState<SortOption>('rating');
 
-  // セッションに基づいてフェッチするかを判断
   const shouldFetch = !!session?.user;
 
-  // useSWRで映画データを取得
   const { data, error, isLoading } = useSWR<MovieResponse>(
     shouldFetch ? '/api/movie' : null,
     fetcher,
+    {
+      revalidateOnMount: true,
+    },
   );
 
-  // ローディング状態
+  const sortedMovie = useMemo(() => {
+    if (!data?.results) return [];
+
+    const movies = [...data.results];
+
+    switch (sortOption) {
+      case 'rating':
+        return movies.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+      case 'newest':
+        return movies.sort(
+          (a, b) =>
+            new Date(b.release_date || '').getTime() - new Date(a.release_date || '').getTime(),
+        );
+      case 'title':
+        return movies.sort((a, b) => a.title.localeCompare(b.title));
+      case 'popularity':
+      default:
+        return movies;
+    }
+  }, [data, sortOption]);
+
   if (isLoading)
     return (
       <div className='flex justify-center items-center min-h-[400px]'>
@@ -63,7 +99,6 @@ export default function MovieComponent() {
       </div>
     );
 
-  // エラー状態
   if (error)
     return (
       <div className='p-6 text-center border border-red-200 rounded-lg bg-red-50 text-red-600'>
@@ -72,7 +107,6 @@ export default function MovieComponent() {
       </div>
     );
 
-  // データがない、またはresultsが空の場合
   if (!data || !data.results || data.results.length === 0)
     return (
       <div className='p-8 text-center border rounded-lg bg-muted'>
@@ -82,9 +116,36 @@ export default function MovieComponent() {
 
   return (
     <div className='container mx-auto py-6'>
-      <h2 className='text-2xl font-bold mb-6'>今週のトレンド映画</h2>
+      <div className='flex items-center justify-between mb-6'>
+        <h2 className='text-2xl font-bold'>今週のトレンド映画</h2>
+        <div>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant='outline' size='sm'>
+                <div className='flex items-center gap-2'>
+                  <ArrowDownUp className='h-4 w-4' />
+                  並び替え
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className='w-56 z-50' align='end' forceMount>
+              <DropdownMenuLabel>並び替え</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={sortOption}
+                onValueChange={(value) => setSortOption(value as SortOption)}
+              >
+                <DropdownMenuRadioItem value='popularity'>人気順</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value='rating'>評価順</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value='newest'>新着順</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value='title'>タイトル順</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-        {data.results.map((movie) => (
+        {sortedMovie.map((movie) => (
           <Card
             key={movie.id}
             className='overflow-hidden h-full flex flex-col hover:shadow-lg transition-shadow'
